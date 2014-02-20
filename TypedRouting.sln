@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2013
+VisualStudioVersion = 12.0.30110.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "TypedRouting", "TypedRouting\TypedRouting.fsproj", "{A7A6F1EC-9095-4D1F-A2D1-F7342DA84B78}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OwinTest", "OwinTest\OwinTest.csproj", "{C9037BA7-A708-4572-AE3F-DC233C258EAE}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A7A6F1EC-9095-4D1F-A2D1-F7342DA84B78}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A7A6F1EC-9095-4D1F-A2D1-F7342DA84B78}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A7A6F1EC-9095-4D1F-A2D1-F7342DA84B78}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A7A6F1EC-9095-4D1F-A2D1-F7342DA84B78}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C9037BA7-A708-4572-AE3F-DC233C258EAE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C9037BA7-A708-4572-AE3F-DC233C258EAE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C9037BA7-A708-4572-AE3F-DC233C258EAE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C9037BA7-A708-4572-AE3F-DC233C258EAE}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
