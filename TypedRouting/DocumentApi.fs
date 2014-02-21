@@ -2,7 +2,7 @@
 open Microsoft.Owin
 
 type Route = {
-    Methods : string list
+    Methods : Set<string>
     UriTemplate : string
 }
 
@@ -29,8 +29,8 @@ type DocumentApi
     interface IBlueprintApi with
         member x.GetRoutes () =
             [
-                ({ Methods = [ "GET" ]; UriTemplate = "/docs{?skip}" }, ``GET /docs{?skip} Query``)
-                ({ Methods = ["GET"]; UriTemplate = "/docs/{id}" }, ``GET /docs/{id} Get``)
+                ({ Methods = [ "GET" ] |> Set.ofList; UriTemplate = "/docs{?skip}" }, ``GET /docs{?skip} Query``)
+                ({ Methods = ["GET"] |> Set.ofList; UriTemplate = "/docs/{id}" }, ``GET /docs/{id} Get``)
             ]
 
 
@@ -65,10 +65,14 @@ module RouteTable =
     let registerBlueprintApi (blueprintApi : IBlueprintApi) =
         register (blueprintApi.GetRoutes())
 
+    let isRouteMatch route (context : IOwinContext) =
+        route.Methods
+        |> Set.contains ""
+
     let buildOwinHandler (table : Map<Route, IOwinContext -> Async<unit>>) (context : IOwinContext) (next : unit -> Async<unit>) : Async<unit> =
         let route =
             table
-            |> Map.tryPick (fun k v -> None)
+            |> Map.tryPick (fun k v -> if (context |> isRouteMatch k) then Some v else None)
         match route with
         | Some h ->
             async {
