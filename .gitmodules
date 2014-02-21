@@ -1,0 +1,4 @@
+[submodule "uri-templates"]
+	path = uri-templates
+	url = git@github.com:andlju/uri-templates.git
+	branch = master
