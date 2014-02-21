@@ -15,7 +15,6 @@ namespace OwinTest
     {
         public void Configuration(IAppBuilder appBuilder)
         {
-
             appBuilder.Use(
                 async (context, next) =>
                     {
