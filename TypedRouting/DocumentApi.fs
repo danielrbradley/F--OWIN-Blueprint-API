@@ -1,35 +1,32 @@
-﻿module TypedRouting
+﻿module TypedRouting.DocumentApi
 open Microsoft.Owin
 
-// Placeholder types
-type Request = 
-    | Get of string
-    | Post
-    | Put
-    | Delete
-
-type Response = {
-    StatusCode : int
-    Response : string
-}
-
-type BlueprintApi =
-    abstract member TryHandle : IOwinContext -> bool
-
-// This would actually be nested inside Api
-type Foo = {
-    skip : int
-}
+type IBlueprintApi =
+    abstract member GetRoutes : unit -> (string * (IOwinContext -> Async<unit>)) list
 
 // This would be auto-generated inside of the Blueprint type provider
 type DocumentApi
     (
-        ``GET /docs{?skip}`` : int -> Response,
-        ``GET /docs/{id}`` : int -> Response
+        ``GET /docs{?skip}`` : (int * IOwinContext) -> Async<unit>,
+        ``GET /docs/{id}`` : (int * IOwinContext) -> Async<unit>
     ) =
-    interface BlueprintApi with
-        member x.TryHandle context =
-            failwith "Not Implemented"
+
+    let ``GET /docs{?skip} Query`` (context : IOwinContext) : Async<unit> = async {
+        // TODO: Parse arguments.
+        do! ``GET /docs{?skip}`` (0, context)
+    }
+
+    let ``GET /docs/{id} Get`` (context : IOwinContext) : Async<unit> = async {
+        // TODO: Parse arguments.
+        do! ``GET /docs{?skip}`` (0, context)
+    }
+
+    interface IBlueprintApi with
+        member x.GetRoutes () =
+            [
+                ("GET /docs{?skip}", ``GET /docs{?skip} Query``)
+                ("GET /docs/{id} Get", ``GET /docs/{id} Get``)
+            ]
 
 
 // Example of Ideal usage:
@@ -38,44 +35,35 @@ type DocumentApi
 let documentApi =
     DocumentApi
         (
-            ``GET /docs{?skip}`` = fun skip ->
-                {
-                    StatusCode = 200
-                    Response = "Hello world!"
+            ``GET /docs{?skip}`` = fun (skip, context) -> async {
+                    context.Response.ContentType <- "text/plain"
+                    do! Async.AwaitIAsyncResult(context.Response.WriteAsync("Hello World!\r\nHello World!\r\nHello World!\r\nHello World!")) |> Async.Ignore
                 }
             ,
-            ``GET /docs/{id}`` = fun id ->
-                {
-                    StatusCode = 200
-                    Response = sprintf "Hello world!, here's document #%i" id
+            ``GET /docs/{id}`` = fun (id, context) -> async {
+                    context.Response.ContentType <- "text/plain"
+                    do! Async.AwaitIAsyncResult(context.Response.WriteAsync("Hello World!")) |> Async.Ignore
                 }
         )
 
 
 // Hacky example of a server configuration
-module Server =
-    type Server = {
-        Url : string
-        Apis : Map<string option, BlueprintApi>
-    }
+module RouteTable =
+    let create =
+        Map.empty
 
-    let create url =
-        {
-            Url = url
-            Apis = Map.empty
-        }
+    let register routes table =
+        let addRoute table (uriTemplate, handler) =
+            table |> Map.add uriTemplate handler
+        routes |> List.fold addRoute table
 
-    let registerArea path api server =
-        { server with Apis = server.Apis |> Map.add (Some path) api }
+    let registerBlueprintApi (blueprintApi : IBlueprintApi) =
+        register (blueprintApi.GetRoutes())
 
-    let register api server =
-        { server with Apis = server.Apis |> Map.add None api }
+    let buildOwinHandler table : IOwinContext -> (unit -> Async<unit>) -> Async<unit> =
+        failwith ""
 
-    let start server =
-        failwith "Not Implemented"
-
-let startExample () =
-    Server.create "http://localhost:8080"
-    |> Server.register documentApi
-    |> Server.start
-
+let buildOwinHandler () =
+    RouteTable.create
+    |> RouteTable.registerBlueprintApi documentApi
+    |> RouteTable.buildOwinHandler

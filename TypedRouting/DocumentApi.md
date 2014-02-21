@@ -14,6 +14,9 @@ used to generate the definition of the API.
 + Response 200 (text/plain)
 
         Hello World!
+        Hello World!
+        Hello World!
+        Hello World!
 
 ## Get Document [GET /docs/{id}]
 + Parameters
