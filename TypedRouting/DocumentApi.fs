@@ -1,8 +1,13 @@
 ﻿module TypedRouting.DocumentApi
 open Microsoft.Owin
 
+type Route = {
+    Methods : string list
+    UriTemplate : string
+}
+
 type IBlueprintApi =
-    abstract member GetRoutes : unit -> (string * (IOwinContext -> Async<unit>)) list
+    abstract member GetRoutes : unit -> (Route * (IOwinContext -> Async<unit>)) list
 
 // This would be auto-generated inside of the Blueprint type provider
 type DocumentApi
@@ -24,8 +29,8 @@ type DocumentApi
     interface IBlueprintApi with
         member x.GetRoutes () =
             [
-                ("GET /docs{?skip}", ``GET /docs{?skip} Query``)
-                ("GET /docs/{id} Get", ``GET /docs/{id} Get``)
+                ({ Methods = [ "GET" ]; UriTemplate = "/docs{?skip}" }, ``GET /docs{?skip} Query``)
+                ({ Methods = ["GET"]; UriTemplate = "/docs/{id}" }, ``GET /docs/{id} Get``)
             ]
 
 
@@ -49,7 +54,7 @@ let documentApi =
 
 // Hacky example of a server configuration
 module RouteTable =
-    let create =
+    let create () : Map<Route, IOwinContext -> Async<unit>> =
         Map.empty
 
     let register routes table =
@@ -60,10 +65,19 @@ module RouteTable =
     let registerBlueprintApi (blueprintApi : IBlueprintApi) =
         register (blueprintApi.GetRoutes())
 
-    let buildOwinHandler table : IOwinContext -> (unit -> Async<unit>) -> Async<unit> =
-        failwith ""
+    let buildOwinHandler (table : Map<Route, IOwinContext -> Async<unit>>) (context : IOwinContext) (next : unit -> Async<unit>) : Async<unit> =
+        let route =
+            table
+            |> Map.tryPick (fun k v -> None)
+        match route with
+        | Some h ->
+            async {
+                do! h(context)
+                do! next()
+            }
+        | None -> failwith "404"
 
 let buildOwinHandler () =
-    RouteTable.create
+    RouteTable.create ()
     |> RouteTable.registerBlueprintApi documentApi
     |> RouteTable.buildOwinHandler

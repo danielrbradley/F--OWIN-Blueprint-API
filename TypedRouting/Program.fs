@@ -1,5 +1,6 @@
-﻿module Program
+﻿namespace TypedRouting
 
+open System
 open System.Threading.Tasks
 
 open Microsoft.Owin
@@ -7,7 +8,7 @@ open Microsoft.Owin.Hosting
 
 open Owin
 
-type Startup () =
+module FSharpOwin =
     let mapAsyncHandler (handler : IOwinContext -> (unit -> Async<unit>) -> Async<unit>) (context : IOwinContext) (next : unit -> Task) : Task =
         let asyncNext () =
             Async.AwaitIAsyncResult(next())
@@ -17,16 +18,26 @@ type Startup () =
             |> Async.StartAsTask
         taskHandler :> Task
 
-    let useHandler handler (app : IAppBuilder) =
-        app.Use(handler |> mapAsyncHandler)
+    let buildHandler handler =
+        let taskHandler : IOwinContext -> (unit -> Task) -> Task =  mapAsyncHandler handler
+        Func<IOwinContext, Func<Task>, Task>(fun context next ->
+            taskHandler context (fun () -> next.Invoke()))
 
+    let useHandler (handler : IOwinContext -> (unit -> Async<unit>) -> Async<unit>) (app : IAppBuilder) =
+        let taskHandler : IOwinContext -> (unit -> Task) -> Task =  mapAsyncHandler handler
+        let taskFuncHandler = Func<IOwinContext, Func<Task>, Task>(fun context next ->
+            taskHandler context (fun () -> next.Invoke()))
+        AppBuilderUseExtensions.Use(app, taskFuncHandler)
+
+type Startup () =
     member x.Configuration app =
         app
-        |> useHandler (TypedRouting.DocumentApi.buildOwinHandler())
+        |> FSharpOwin.useHandler (TypedRouting.DocumentApi.buildOwinHandler())
         |> ignore
 
-[<EntryPoint>]
-let Main(args) = 
-    use app = WebApp.Start<Startup>("")
-    System.Console.Read() |> ignore
-    0
+module Program =
+    [<EntryPoint>]
+    let Main(args) = 
+        use app = WebApp.Start<Startup>("http://localhost:5000/")
+        System.Console.Read() |> ignore
+        0
