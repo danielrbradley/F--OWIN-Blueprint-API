@@ -63,6 +63,13 @@
     <Compile Include="DocumentApi.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\uri-templates\UrlTemplates\UrlTemplates.csproj">
+      <Name>UrlTemplates</Name>
+      <Project>{938c8e54-eaad-4c52-ba78-1bae2b870503}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+  </ItemGroup>
   <PropertyGroup>
     <MinimumVisualStudioVersion Condition="'$(MinimumVisualStudioVersion)' == ''">11</MinimumVisualStudioVersion>
   </PropertyGroup>
